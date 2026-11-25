@@ -59,5 +59,26 @@ def list_open_tickets():
     ]
 
 
+@mcp.resource("helpdesk://policy")
+def helpdesk_policy():
+    """IT support operating policy"""
+    return (
+        "Always verify tickets using actual records. "
+        "Never invent incident details. "
+        "Never resolve a ticket without explicit approval."
+    )
+
+
+@mcp.prompt()
+def triage_ticket(ticket_id: str) -> str:
+    """Prepare a structured incident triage request."""
+    return (
+        f"Investigate ticket {ticket_id}. "
+        "Fetch its actual details, summarize the status, "
+        "and suggest the next appropriate action. "
+        "Do not modify the ticket."
+    )
+
+
 if __name__ == "__main__":
     mcp.run()
