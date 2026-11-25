@@ -2,6 +2,15 @@ import os
 
 from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
+from pydantic import BaseModel
+
+
+class Ticket(BaseModel):
+    id: str
+    title: str
+    team: str
+    status: str
+
 
 mcp = MCPServer(
     "TicketPilot",
@@ -9,41 +18,41 @@ mcp = MCPServer(
     instructions="Use ticket data to answer IT support questions.",
 )
 
-TICKETS = {
-    "INC-101": {
-        "id": "INC-101",
-        "title": "VPN connection failing",
-        "team": "IT",
-        "status": "open",
-    },
-    "INC-102": {
-        "id": "INC-102",
-        "title": "Payroll dashboard unavailable",
-        "team": "HR",
-        "status": "open",
-    },
-    "INC-103": {
-        "id": "INC-103",
-        "title": "WSL network access failing when connected to VPN",
-        "team": "Networks",
-        "status": "closed",
-    },
+TICKETS: dict[str, Ticket] = {
+    "INC-101": Ticket(
+        id="INC-101",
+        title="VPN connection failing",
+        team="IT",
+        status="open",
+    ),
+    "INC-102": Ticket(
+        id="INC-102",
+        title="Payroll dashboard unavailable",
+        team="HR",
+        status="open",
+    ),
+    "INC-103": Ticket(
+        id="INC-103",
+        title="WSL network access failing when connected to VPN",
+        team="Networks",
+        status="closed",
+    ),
 }
 
 
-def find_allowed_ticket(ticket_id: str):
+def find_allowed_ticket(ticket_id: str) -> Ticket:
     ticket = TICKETS.get(ticket_id)
 
     allowed_team = os.getenv("HELPDESK_TEAM", "IT")
 
-    if not ticket or ticket["team"] != allowed_team:
+    if not ticket or ticket.team != allowed_team:
         raise ToolError("Ticket not found or not accessible")
 
     return ticket
 
 
 @mcp.tool()
-def get_ticket(ticket_id: str):
+def get_ticket(ticket_id: str) -> Ticket:
     """Get an IT Support Ticket by its exact incident ID."""
     return find_allowed_ticket(ticket_id).copy()
 
@@ -55,7 +64,7 @@ def list_open_tickets():
     return [
         t.copy()
         for t in TICKETS.values()
-        if t["team"] == allowed_team and t["status"] == "open"
+        if t.team == allowed_team and t.status == "open"
     ]
 
 
